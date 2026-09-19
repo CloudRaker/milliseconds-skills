@@ -1,0 +1,16 @@
+{
+  "name": "milliseconds",
+  "interface": {
+    "displayName": "milliseconds.ai"
+  },
+  "plugins": [
+    {
+      "name": "milliseconds",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

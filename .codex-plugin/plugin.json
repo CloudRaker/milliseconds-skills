@@ -1,0 +1,22 @@
+{
+  "name": "milliseconds",
+  "version": "0.1.0",
+  "description": "Skills for decision-machine-1, the decisions API at api.milliseconds.ai: yes-no, classify, classify-tree, rate, answer, extract, entities, verify, the OpenAI-compatible surface, and evaluation.",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "author": {
+    "name": "milliseconds.ai",
+    "url": "https://milliseconds.ai"
+  },
+  "homepage": "https://docs.milliseconds.ai",
+  "repository": "https://github.com/CloudRaker/milliseconds-skills",
+  "license": "MIT",
+  "keywords": ["milliseconds", "decision-machine-1", "classification", "extraction", "guardrails", "routing", "probabilities"],
+  "interface": {
+    "displayName": "milliseconds.ai",
+    "shortDescription": "Typed decisions over text: labels, probabilities and spans, never prose.",
+    "developerName": "milliseconds.ai",
+    "category": "Developer Tools",
+    "websiteURL": "https://milliseconds.ai"
+  }
+}

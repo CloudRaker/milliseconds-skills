@@ -1,0 +1,73 @@
+---
+name: milliseconds-entities
+description: |
+  Find every span of the types you name in a text with decision-machine-1, each with a probability and character offsets, sorted by position. You define the types (person, email, case_number, drug_name...); there is no fixed taxonomy. Use for PII detection and redaction, highlighting, counting mentions, and any "all occurrences" need.
+---
+
+# entities
+
+`POST https://api.milliseconds.ai/v1/decision-machine-1/entities`. Every matching span for every type, sorted by `start`. Use `extract` when you want one typed record, `answer` when you want one span per question.
+
+## Request
+
+| Field | Required | Meaning | Limits |
+| --- | --- | --- | --- |
+| `text` / `texts` | one | The text, or a batch | 20,000 chars; 32 items |
+| `types` | yes | Array of type names, or object `type: description` | array 1 to 64; object no count cap |
+
+Prefer the object form. Describe any type whose name alone is ambiguous (`number` matches dates, quantities and ids).
+
+```bash
+curl -s https://api.milliseconds.ai/v1/decision-machine-1/entities \
+  -H 'content-type: application/json' -H "authorization: Bearer $MS_API_KEY" \
+  -d '{
+    "text": "Contact Maria Alvarez at maria.alvarez@northwind.example or +1 415 555 0132.",
+    "types": {
+      "email": "an email address",
+      "phone": "a telephone number",
+      "person": "the full name of a person"
+    }
+  }'
+```
+
+```json
+{"entities":[
+  {"type":"person","text":"Maria Alvarez","probability":0.999,"start":8,"end":21},
+  {"type":"email","text":"maria.alvarez@northwind.example","probability":0.991,"start":25,"end":56},
+  {"type":"phone","text":"+1 415 555 0132","probability":0.996,"start":60,"end":75}
+]}
+```
+
+- `type`: your type name, copied back. Only requested types come back; an unrequested person name is ignored.
+- `text`: the span. `text.slice(start, end)` equals it. Use offsets, not string search: the same string can occur many times.
+- `probability`: raw span confidence, not normalized across types. Each entity stands alone. No `confidence` field.
+- `start`, `end`: never `null` here.
+- No match for any type returns `{"entities": []}`. That is a normal result.
+
+## Threshold per action
+
+| Action | Threshold | Why |
+| --- | --- | --- |
+| Redact before storage | Keep everything | A missed span leaks data; a wrong redaction costs little |
+| Highlight in a UI | 0.5 and above | The reader corrects the rest |
+| Write to a database field | 0.9 and above | Route the rest to a person |
+
+## Redaction loop
+
+Sort by `start` descending and replace slices from the end, so earlier offsets stay valid. Duplicate mentions each return their own entity; deduplicate on `text` when you want a set. Docs: /recipes/pii-detection.md.
+
+## Long text
+
+Send the whole document. Above 2,000 characters the extractor scans overlapping windows (384 tokens, 64 overlap) and remaps offsets back to your original string. A 2,469-character capture returned an entity at `start: 2432` that sliced correctly.
+
+## Batching
+
+`texts` up to 32, `{"results":[{"entities":[...]}, ...]}` in input order, offsets per text, one inference call per text.
+
+## Gotchas
+
+- Empty `types` array: 400 `types: Too small: expected array to have >=1 items`.
+- Multilingual: English type descriptions work on French, German and other text; offsets stay correct across accented characters.
+- Typical latency 0.42 s for 3 types on a short text.
+
+Full page: https://docs.milliseconds.ai/capabilities/entities.md

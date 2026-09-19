@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "milliseconds-skills",
+  "metadata": {
+    "description": "milliseconds.ai decision-machine-1 skills for Claude Code"
+  },
+  "owner": {
+    "name": "milliseconds.ai",
+    "email": "support@milliseconds.ai"
+  },
+  "plugins": [
+    {
+      "name": "milliseconds",
+      "source": "./",
+      "category": "developer-tools"
+    }
+  ]
+}
