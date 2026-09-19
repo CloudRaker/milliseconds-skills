@@ -1,6 +1,6 @@
 {
   "name": "milliseconds",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Skills for decision-machine-1, the decisions API at api.milliseconds.ai: yes-no, classify, classify-tree, rate, answer, extract, entities, verify, the OpenAI-compatible surface, and evaluation.",
   "skills": "./skills",
   "mcpServers": "./.mcp.json",

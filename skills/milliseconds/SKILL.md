@@ -40,6 +40,72 @@ curl -s https://api.milliseconds.ai/v1/decision-machine-1/classify \
 
 A `401 invalid_api_key` means the key is wrong or revoked. Ask the user for a key. Never guess one.
 
+## SDKs and CLI
+
+Official SDKs wrap every capability and keep the wire names. Prefer them over raw HTTP when the project already uses the language. Both read the key from `MS_API_KEY`. Raw `curl` and `fetch` stay valid everywhere else, and the JSON body is the same.
+
+TypeScript, zero runtime dependencies, TypeScript 5.0 or later, Node 20 or later:
+
+```sh
+npm i @cloudraker/milliseconds
+```
+
+```ts
+import { DecisionMachine } from '@cloudraker/milliseconds'
+
+const dm = new DecisionMachine() // reads MS_API_KEY
+
+const r = await dm.classify(ticket, {
+  billing: 'payments, invoices, charges and refunds',
+  shipping: 'delivery, tracking and packages',
+  account: 'login, passwords and profile settings',
+})
+// r: ClassifyResult<'billing' | 'shipping' | 'account'>
+// r.label is that union, so r.label === 'shiping' fails to compile
+```
+
+Your labels, scale levels, entity types and schema flow into the result type. A hoisted label array needs `as const` to keep the union. The package also exports `typed` for a zod or valibot schema, and `isMillisecondsError` to narrow a caught error.
+
+Python, `httpx` only, Python 3.10 or later:
+
+```sh
+pip install cloudraker-milliseconds
+```
+
+Python cannot read label names out of a dict display. It solves a `TypeVar` from an annotated constant, so annotate the constants file:
+
+```python
+from typing import Final, Literal, Mapping
+
+from milliseconds import DecisionMachine
+
+Intent = Literal["billing", "shipping", "account"]
+
+LABELS: Final[Mapping[Intent, str]] = {
+    "billing": "payments, invoices, charges and refunds",
+    "shipping": "delivery, tracking and packages",
+    "account": "login, passwords and profile settings",
+}
+
+dm = DecisionMachine()  # reads MS_API_KEY
+
+r = dm.classify("I was charged twice.", LABELS)
+r.label  # Intent. A match statement over it is exhaustive.
+r.scores["billing"]  # r.scores["refunds"] is a type error.
+```
+
+Without the annotation you get `ClassifyResult[str]`. Nothing breaks, and you lose only the names. `AsyncDecisionMachine` has the same methods. Annotate a taxonomy constant with `Tree`. Catch `MillisecondsError`, or one subclass such as `RateLimitError`.
+
+From a shell, the TypeScript package ships the `dm1` command:
+
+```sh
+npm i -g @cloudraker/milliseconds
+dm1 classify "I was charged twice" billing shipping account
+dm1 yes-no "Ship it today" "The customer expresses urgency." --check
+```
+
+`--check` exits 3 when the answer is no. `--min` and `--min-confidence` gate the same way on the numbers. `--json` and `--jsonl` print machine-readable output. `dm1 --help` lists every flag.
+
 ## Choose the capability from the answer shape
 
 | You need | Capability | Returns | Skill |

@@ -2,7 +2,7 @@
 
 Agent skills for [decision-machine-1](https://docs.milliseconds.ai), the decisions API at `api.milliseconds.ai`. It turns text into typed decisions in about 0.4 s: labels, probabilities and spans, never prose. The skills follow the [Agent Skills](https://agentskills.io) format and ship as a plugin for Claude Code and OpenAI Codex.
 
-Read [`skills/milliseconds/SKILL.md`](skills/milliseconds/SKILL.md) first. It is the umbrella. The rest go one level deeper per capability.
+Read [`skills/milliseconds/SKILL.md`](skills/milliseconds/SKILL.md) first. It also points at the official SDKs and the `dm1` command line, which most projects should use instead of raw HTTP. It is the umbrella. The rest go one level deeper per capability.
 
 ## Install
 
