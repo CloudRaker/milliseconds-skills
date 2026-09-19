@@ -64,6 +64,36 @@ Send the whole document. Above 2,000 characters the extractor scans overlapping 
 
 `texts` up to 32, `{"results":[{"entities":[...]}, ...]}` in input order, offsets per text, one inference call per text.
 
+## With the SDK and dm1
+
+```ts
+const found = await dm.entities(text, {
+  email: 'an email address',
+  phone: 'a telephone number',
+  person: 'the full name of a person',
+})
+// found: Entity<'email' | 'phone' | 'person'>[]
+found[0]?.type // that union, not string
+```
+
+```python
+Kind = Literal["email", "phone", "person"]
+TYPES: Final[Mapping[Kind, str]] = {
+    "email": "an email address",
+    "phone": "a telephone number",
+    "person": "the full name of a person",
+}
+found = dm.entities(text, TYPES)  # Results[Entity[Kind]]
+found.usage.input_tokens
+```
+
+```sh
+dm1 entities "$TEXT" email="an email address" phone="a telephone number" \
+  person="the full name of a person" --json | jq -r '.[] | select(.type=="person") | .text'
+```
+
+The call returns a plain array of entities, not an envelope. Your type names become the `type` union, so a typo fails to compile. The SDK accepts 1 to 64 types in the array form, where `classify` needs 2 labels. Python returns `Results[Entity[Kind]]`, a list that also carries `.usage`; `dm1 --json` prints the same array for `jq`.
+
 ## Gotchas
 
 - Empty `types` array: 400 `types: Too small: expected array to have >=1 items`.

@@ -49,6 +49,36 @@ Three questions on `"Invoice 8812 from Meridian Design. Issued 3 March 2026 by N
 - `texts`: one question over up to 32 texts, one call per text. Offsets index each result's own text.
 - Both: `results[textIndex].results[questionIndex]`.
 
+## With the SDK and dm1
+
+The SDK sends the same body and keeps the wire names. A questions array returns one result per question, in order.
+
+```ts
+const [who, when] = await dm.answer(text, ['Who is the customer?', 'When did the order ship?'])
+// [AnswerResult<'Who is the customer?'>, AnswerResult<'When did the order ship?'>]
+if (who.answer !== null) text.slice(who.start, who.end) // start and end narrow to number
+```
+
+`AnswerResult` is a discriminated union on `answer`, so one `null` check narrows `start` and `end` for you.
+
+```python
+r = dm.answer(text, ["Who is the customer?", "When did the order ship?"])
+# r: Results[AnswerResult]
+span = r[0].span  # tuple[int, int] | None
+if span is not None:
+    text[span[0] : span[1]]
+```
+
+Python cannot narrow three fields from one check, so read the offsets through the `.span` property.
+
+```sh
+dm1 answer "$TEXT" "Who is the customer?" "When did the order ship?"
+# columns: answer, probability, start-end, question
+curl -s https://example.com/order.txt | dm1 answer - "Who is the customer?" --json
+```
+
+`dm1` prints the offsets as `start-end`, and a `-` for a null answer. Pass `-` as the text to read stdin.
+
 ## Gotchas
 
 - `question` and `questions` together, or neither: 400 `body: provide question or questions, not both`.

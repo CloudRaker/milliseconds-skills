@@ -57,6 +57,33 @@ Short numeric values produce false positives: a three-digit code, a quantity or 
 
 `texts` up to 32 documents against one `field` and `value`, `{"results":[...]}` in input order. To check several fields, send one call per field. Each text is one inference call.
 
+## With the SDK and dm1
+
+```ts
+const r = await dm.verify(
+  'INVOICE #4471 - Acme Corp. Total due $2,676.00.',
+  { name: 'invoice_number', description: 'The invoice number printed on the document' },
+  '4417',
+)
+// r: VerifyResult -> matches, probability, found
+```
+
+```python
+r = dm.verify(
+    "INVOICE #4471 - Acme Corp. Total due $2,676.00.",
+    {"name": "invoice_number", "description": "The invoice number printed on the document"},
+    "4417",
+)  # r: VerifyResult -> r.matches, r.probability, r.found
+```
+
+```sh
+dm1 verify "INVOICE #4471 - Acme Corp. Total due \$2,676.00." \
+  --field invoice_number="The invoice number printed on the document" \
+  --value 4417 --check
+```
+
+`field` takes a bare name or `{ name, description }`; a bare name goes on the wire as `{"name": ...}`. `value` takes a string or a number. The result type is the same three fields, so read `found` in code the same way. `dm1` splits `--field name=description` on the first `=`, and `--check` exits 3 when the value does not match.
+
 ## Gotchas
 
 - Missing `field`: 400 `field: Invalid input: expected object, received undefined`. Missing `value`: `value: Invalid input`.

@@ -76,6 +76,38 @@ Above 2,000 characters the API chunks and merges: first non-empty value per fiel
 
 `texts` up to 32 with one schema, one inference call per text. Two texts measured 0.44 s against 0.41 s for one.
 
+## With the SDK and dm1
+
+```ts
+const data = await dm.extract(invoiceText, {
+  type: 'object',
+  properties: {
+    invoice_number: { type: 'string', description: 'invoice number' },
+    total_due: { type: 'number', description: 'total amount due' },
+    paid: { type: 'boolean', description: 'is the invoice paid' },
+    currency: { enum: ['USD', 'EUR', 'GBP'], description: 'currency code' },
+  },
+})
+// data: { invoice_number: string | null; total_due: number | null; paid: boolean | null;
+//         currency: 'USD' | 'EUR' | 'GBP' | (string & {}) | null }
+```
+
+```python
+class Invoice(TypedDict):
+    invoice_number: str | None
+    total_due: float | None
+    paid: bool | None
+    currency: Literal["USD", "EUR", "GBP"] | None
+
+data = dm.extract(invoice_text, Invoice)  # Invoice; data["total_due"] is float | None
+```
+
+```sh
+dm1 extract -f invoice.txt --schema @invoice.json --json > invoice.json
+```
+
+The TypeScript SDK reads the JSON Schema literal at the type level, so the result types itself. A zod 4.2 schema passes straight in; for valibot or older zod wrap the converter output in `typed<T>()`. The types state the four degradations. A missing value is `null`, an array of objects is `never[]`, and an array of scalars is `string[]`. An enum stays unchecked on the server. Python takes a `TypedDict`, a dataclass or a pydantic model with every field `| None`. A `TypedDict` carries no field descriptions, so pass the dict schema when you need them. `dm1` reads that same dict with `--schema @invoice.json`.
+
 ## Gotchas
 
 - Bare field names without descriptions are the common failure. Describe each field in the words the document uses.

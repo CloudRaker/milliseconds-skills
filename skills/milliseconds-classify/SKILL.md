@@ -99,6 +99,45 @@ curl -s https://api.milliseconds.ai/v1/decision-machine-1/classify-tree \
 - Latency is about 0.4 s per level, sequential. Walk the tree in your own code when you need a stop rule per level; the API has none. Docs: /recipes/taxonomy-classification.md.
 - Errors: `tree.billing.labels: each level needs 2 to 64 labels`, `tree is deeper than 8 levels`.
 
+## With the SDK and dm1
+
+The label union flows into the result: `label` and every `scores` key are your own names, so a typo fails to compile. A described set is a plain `Record`, and a hoisted `string[]` needs `as const` to keep the union. `classifyTree` types `label` as the leaf labels and `path` as every label in the tree. Python solves the union from an annotated constant, so annotate the labels `Mapping[Intent, str]` and the taxonomy `Tree`. `dm1` takes `name=description` positionals or `@labels.json`, and `--lines` with `--jsonl` labels a whole file.
+
+```ts
+const LABELS = {
+  billing: 'payments, invoices, charges, refunds',
+  shipping: 'delivery, tracking, returns of physical goods',
+  account: 'login, password, profile settings',
+}
+const r = await dm.classify(ticket, LABELS)
+// r: ClassifyResult<'billing' | 'shipping' | 'account'>, r.scores.billing a number
+const t = await dm.classifyTree(ticket, TAXONOMY) // TAXONOMY: the tree above, as an object literal
+// t: ClassifyTreeResult<TreeLabels<...>, LeafLabels<...>>
+// t.label is 'duplicate_charge' | 'refund_request' | 'subscription_change' | 'shipping' | 'account'
+// t.path holds the wider union, 'billing' included
+```
+
+```python
+Intent = Literal["billing", "shipping", "account"]
+LABELS: Final[Mapping[Intent, str]] = {
+    "billing": "payments, invoices, charges, refunds",
+    "shipping": "delivery, tracking, returns of physical goods",
+    "account": "login, password, profile settings",
+}
+TAXONOMY: Final[Tree] = {...}  # the tree above
+
+r = dm.classify(ticket, LABELS)  # ClassifyResult[Intent]
+t = dm.classify_tree(ticket, TAXONOMY)  # ClassifyTreeResult, label is str
+```
+
+```sh
+dm1 classify "$TICKET" billing="payments, invoices, charges, refunds" \
+  shipping="delivery, tracking, returns of physical goods" \
+  account="login, password, profile settings"        # label probability confidence scores
+dm1 classify-tree -f ticket.txt --tree @taxonomy.json --json   # path, label, probability, confidence, levels[]
+dm1 classify --lines tickets.txt @labels.json --jsonl > labelled.ndjson
+```
+
 ## Gotchas
 
 - Array form with one label: 400 `labels: Too small: expected array to have >=2 items`. Object form with one label silently returns probability 1.

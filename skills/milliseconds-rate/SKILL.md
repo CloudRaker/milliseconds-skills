@@ -58,6 +58,40 @@ Split a broad judgment such as "lead quality" into separate calls for budget, au
 
 `texts` up to 32 against one scale, `{"results":[...]}` in input order, one inference call per text.
 
+## With the SDK and dm1
+
+```ts
+const SCALE = ['No impact', 'Minor inconvenience', 'Degraded service', 'Major outage'] as const
+
+const r = await dm.rate('Our production database is down and every customer request is failing right now.', SCALE)
+// r: RateResult<typeof SCALE>
+// r.level: 0 | 1 | 2 | 3. r.label: the four literals. r.scores: [number, number, number, number]
+if (r.score / (SCALE.length - 1) > 0.8 && r.confidence > 0.7) page()
+```
+
+```python
+from typing import Final, Literal, Sequence
+
+Severity = Literal["No impact", "Minor inconvenience", "Degraded service", "Major outage"]
+SCALE: Final[Sequence[Severity]] = [
+    "No impact",
+    "Minor inconvenience",
+    "Degraded service",
+    "Major outage",
+]
+
+r = dm.rate("Our production database is down and every customer request is failing right now.", SCALE)
+# r: RateResult[Severity]. r.label is that union. r.score and r.confidence are floats.
+```
+
+```sh
+dm1 rate "Our production database is down and every customer request is failing right now." \
+  "No impact" "Minor inconvenience" "Degraded service" "Major outage" --min-confidence 0.7
+# label, score, level, confidence, then one score per level
+```
+
+The `as const` scale gives a level literal union and a fixed-length `scores` tuple. Python solves the same union from the `Sequence[L]` annotation; without it you get `RateResult[str]`. Route on `score` and `confidence` in every language, never on `level`. `dm1` takes the levels as positionals low to high, and gates on `--min-confidence`.
+
 ## Gotchas
 
 - Scale of one item: 400 `scale: Too small: expected array to have >=2 items`. Over ten: `Too big: expected array to have <=10 items`.

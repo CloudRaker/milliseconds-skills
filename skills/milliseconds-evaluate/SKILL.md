@@ -75,3 +75,32 @@ Sample the confirm band into the golden set every week. Docs: /evaluate/monitori
 Any accuracy, latency, cost or margin figure that goes on a page or in a doc must be reproduced by measurement first, with the date, the input sizes and the run count. Latency figures in the docs are medians of 7 runs from a laptop on 2026-09-18 and include network; model time alone is 36 to 54 ms per call.
 
 Full pages: https://docs.milliseconds.ai/evaluate/golden-sets.md, /evaluate/tuning-thresholds.md, /evaluate/monitoring.md
+
+## With the SDK and dm1
+
+The SDK keeps the same batch of 32 and adds the usage of each call, so a scoring run reports its own cost. The result type carries the statement you sent. Scoring from a shell needs no script at all.
+
+```ts
+const chunk = golden.slice(0, 32) // one call per 32 texts
+const { result, usage } = await dm
+  .yesNo(chunk.map((g) => g.text), 'The customer needs help urgently.')
+  .withUsage()
+// result: YesNoResult<'The customer needs help urgently.'>[], one per text, in order
+const scored = chunk.map((g, i) => ({ ...g, probability: result[i].probability }))
+usage.inputTokens // what this chunk billed
+```
+
+```python
+chunk = golden[:32]
+r = dm.yes_no([g["text"] for g in chunk], "The customer needs help urgently.")
+# r: Results[YesNoResult]. A list, plus r.usage.
+scored = [{**g, "probability": res.probability} for g, res in zip(chunk, r)]
+r.usage.input_tokens
+```
+
+```sh
+dm1 yes-no --lines golden.txt "The customer needs help urgently." --jsonl > scored.ndjson
+# one line per text: {"text":"…","results":[{"statement":…,"answer":true,"probability":0.91}]}
+```
+
+`--lines` sends the file in chunks of 32 in order. Each JSON line repeats the input text, so join `scored.ndjson` to your labels on `text`. The statements sit under `results`, one entry per statement.

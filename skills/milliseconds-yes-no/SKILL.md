@@ -71,6 +71,31 @@ Use hints when the plain statement sits on the fence (a "weak yes" near 0.6 to 0
 - Both: `results[textIndex].results[statementIndex]`.
 - `yes-no` is the one capability that accepts both `text` and `texts` (uses `text`) and accepts neither (returns `{"results":[]}`).
 
+## With the SDK and dm1
+
+```ts
+const [urgent, refund] = await dm.yesNo(ticket, [
+  'The customer expresses urgency.',
+  'The customer asks for a refund.',
+])
+// urgent: YesNoResult<'The customer expresses urgency.'>
+// urgent.statement is that literal, so a typo in a comparison fails to compile
+```
+
+```python
+results = dm.yes_no(
+    ticket,
+    ["The customer expresses urgency.", "The customer asks for a refund."],
+)  # Results[YesNoResult]
+results[1].answer
+```
+
+```sh
+dm1 yes-no "$TICKET" "The customer expresses urgency." "The customer asks for a refund."
+```
+
+The SDK takes one `statements` argument and picks the wire field for you. A string sends `statement` and returns the bare result, and a list sends `statements` and returns a tuple in your order. Pass `when_true` and `when_false` in the options object in TypeScript, and as keywords in Python. A list of texts with a list of statements gives the grid, `grid[textIndex][statementIndex]`. `dm1 yes-no --check` exits 3 on a no, `--min 0.9` exits 3 below that probability, and `-q` prints `yes` or `no` alone.
+
 ## Gotchas
 
 - `statement` and `statements` together, or neither, returns 400 `body: provide statement or statements, not both`.

@@ -52,6 +52,8 @@ tickets.jsonl, score it, and propose thresholds per action.
 
 ## Catalog
 
+Every capability skill also shows the same call in the TypeScript SDK, the Python SDK and the `dm1` command line.
+
 | Skill | What it covers |
 | --- | --- |
 | [`milliseconds`](skills/milliseconds) | Umbrella: auth, choosing a capability, writing labels that describe the case, reading probability and confidence, thresholds per action, batching, errors, patterns, working method |
