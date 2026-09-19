@@ -66,7 +66,7 @@ const r = await dm.classify(ticket, {
 
 Your labels, scale levels, entity types and schema flow into the result type. A hoisted label array needs `as const` to keep the union. The package also exports `typed` for a zod or valibot schema, and `isMillisecondsError` to narrow a caught error.
 
-Python, `httpx` only, Python 3.10 or later:
+Python, `httpx` only plus `typing-extensions` on Python 3.10, Python 3.10 or later:
 
 ```sh
 pip install cloudraker-milliseconds
@@ -104,7 +104,7 @@ dm1 classify "I was charged twice" billing shipping account
 dm1 yes-no "Ship it today" "The customer expresses urgency." --check
 ```
 
-`--check` exits 3 when the answer is no. `--min` and `--min-confidence` gate the same way on the numbers. `--json` and `--jsonl` print machine-readable output. `dm1 --help` lists every flag.
+`--check` works with `yes-no` and `verify`. It exits 3 when the answer is no. `--min` gates on `probability`, and `--min-confidence` on `confidence`. `--json` and `--jsonl` print machine-readable output. `dm1 --help` lists every flag.
 
 ## Choose the capability from the answer shape
 
