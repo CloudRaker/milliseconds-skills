@@ -162,7 +162,7 @@ Route into three bands per action: **act** above a high bar, **confirm** in the 
 - `statements` (yes-no) and `questions` (answer): up to 32 per text, **one** inference call. Three questions cost 0.40 s, the same as one.
 - Both axes nest: `results[textIndex].results[statementIndex]`. Offsets index the text at the same position, never a joined string.
 - Cost is the request body as compact JSON at $0.04 per million input tokens, output free. One token is 3.8 characters, rounded up once per request. Read `x-input-tokens` on every response. `x-inference-ms` is the model time, summed over the calls the request made.
-- Batch and throttle anything that loops over the API. Rate limits are 200 requests and 1,000,000 input tokens per minute per organization, shared by every key. A batch counts one request per item: 24 `texts` are 24 requests. Watch `x-ratelimit-remaining-requests` and `x-ratelimit-remaining-tokens`.
+- Batch and throttle anything that loops over the API. Rate limits are 30 requests and 500,000 input tokens per minute for test keys, and from 1,000 requests and 1,000,000 tokens per minute for production tiers, per organization and shared by every key of that type. A batch counts one request per item: 24 `texts` are 24 requests. Watch `x-ratelimit-remaining-requests` and `x-ratelimit-remaining-tokens`.
 
 ## Long text
 

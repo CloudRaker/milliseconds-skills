@@ -44,7 +44,7 @@ for i in range(0, len(golden), 32):
         scored.append({**g, "probability": res["probability"]})
 ```
 
-Throttle: 200 requests and 1,000,000 input tokens per minute per organization, shared across keys. A batch counts one request per item (`texts`, `statements`, `questions`). Read `x-ratelimit-remaining-*`. Retry 502 and 529 with backoff; honour `retry-after` on 429.
+Throttle: test keys get 30 requests and 500,000 input tokens per minute per organization; production tiers start at 1,000 requests and 1,000,000 tokens per minute. Limits are shared across keys of the same type. A batch counts one request per item (`texts`, `statements`, `questions`). Read `x-ratelimit-remaining-*`. Retry 502 and 529 with backoff; honour `retry-after` on 429.
 
 ## 3. Sweep the cut-off
 
