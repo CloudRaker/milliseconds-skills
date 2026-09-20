@@ -191,11 +191,13 @@ curl -s https://api.milliseconds.ai/v1/decision-machine-1/classify \
 
 The base64 never enters the character count. Billed input tokens are the tokens of the body without the image, plus 196, plus a fixed number per image:
 
-| low | medium | high |
-| --- | --- | --- |
-| 1,000 | 2,000 | 4,000 |
+| capability | low | medium | high |
+| --- | --- | --- | --- |
+| `yes-no`, `classify`, `classify-tree`, `rate` | 1,000 | 2,000 | 4,000 |
+| `answer` (provisional) | 2,000 | 4,000 | 8,000 |
+| `extract`, `entities`, `verify` (provisional) | 5,000 | 10,000 | 20,000 |
 
-The same tiers apply to every capability, once per request. Read `x-input-tokens` on every response for the number actually billed. Rate limits count those same tokens; an image request is one request.
+The generative rows are provisional and may change. The image bills once per request. Read `x-input-tokens` on every response for the number actually billed. Rate limits count those same tokens; an image request is one request.
 
 ### Offsets on images
 

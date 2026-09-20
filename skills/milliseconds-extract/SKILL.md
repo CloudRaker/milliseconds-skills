@@ -128,4 +128,4 @@ The response keeps its shape: `data` in your schema, with `null` for every field
 }
 ```
 
-`texts` with `image` is a 400 (`image_with_texts`); one image per request. Billed tokens are the body without the base64, plus 196, plus 1,000 / 2,000 / 4,000 by tier, once per request. Read `x-input-tokens`. Measured on receipts: 74 % on flat fields, 0.82 F1 on line items. Do not pre-parse a document to text and extract from that; the pixels carry layout that markdown drops, and the text route lost 20 F1 points on line items.
+`texts` with `image` is a 400 (`image_with_texts`); one image per request. Billing is provisional on images: the body without the base64, plus 196, plus 5,000 / 10,000 / 20,000 by tier. Read `x-input-tokens`. Measured on receipts: 74 % on flat fields, 0.82 F1 on line items. Do not pre-parse a document to text and extract from that; the pixels carry layout that markdown drops, and the text route lost 20 F1 points on line items.
