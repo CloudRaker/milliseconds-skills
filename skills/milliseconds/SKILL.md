@@ -104,7 +104,7 @@ dm1 classify "I was charged twice" billing shipping account
 dm1 yes-no "Ship it today" "The customer expresses urgency." --check
 ```
 
-`dm1 --image <path>` sends an image instead of a text, with `--detail low|medium|high`. Both SDKs take `image` and `detail` on every capability method. Python accepts a path, bytes or base64. TypeScript accepts a `Uint8Array`, an `ArrayBuffer`, a `Blob`, a data URL or bare base64; read a file with the Node-only helper `imageFile(path)` from `@cloudraker/milliseconds/node`, and pass it as the option: `dm.classify('', LABELS, { image: imageFile('receipt.jpg') })`.
+`dm1 --image <path>` sends an image instead of a text, with `--detail low|medium|high`. Both SDKs take the image where the text goes: `dm.classify(imageFile('receipt.jpg'), LABELS)` in TypeScript (`imageFile` is the Node-only helper from `@cloudraker/milliseconds/node`; a `Uint8Array`, an `ArrayBuffer`, a `Blob` or a data URL also work), `dm.classify(Path("receipt.jpg"), LABELS)` in Python (bytes or a data URL also work). Text beside the image goes first, with the image as the `image` option or keyword. `detail` is an option on every capability.
 
 `--check` works with `yes-no` and `verify`. It exits 3 when the answer is no. `--min` gates on `probability`, and `--min-confidence` on `confidence`. `--json` and `--jsonl` print machine-readable output. `dm1 --help` lists every flag.
 
