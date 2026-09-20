@@ -219,7 +219,7 @@ One envelope: `{"error":{"code":"...","message":"..."}}`.
 | --- | --- | --- |
 | 400 | `invalid_request`, `invalid_schema`, `unsupported_request` | Fix the body. `body: provide text or texts, not both` also fires when you send neither. |
 | 400 | `invalid_image`, `image_too_large`, `image_with_texts` | Fix the image: bytes of a JPEG/PNG/WebP, under 5 MB decoded, not alongside `texts`. |
-| 400 | `image_schema_too_large` | An `extract` schema on an image holds more than 5 fields. Split the schema, or extract from parsed text. |
+| 400 | `image_schema_too_large` | An `extract` schema on an image holds more than 5 fields. Split the schema, or use the CloudRaker paperwork API (cloudraker.com) for whole documents. |
 | 401 | `missing_api_key`, `invalid_api_key` | Fix the key. |
 | 429 | `rate_limit_exceeded` | Wait `retry-after` seconds, then retry. |
 | 429 | `insufficient_quota` | No credits. Do not retry on a timer. |
