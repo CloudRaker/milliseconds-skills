@@ -191,23 +191,15 @@ curl -s https://api.milliseconds.ai/v1/decision-machine-1/classify \
 
 The base64 never enters the character count. Billed input tokens are the tokens of the body without the image, plus 196, plus a fixed number per image:
 
-| Capability | low | medium | high |
-| --- | --- | --- | --- |
-| `yes-no`, `classify`, `classify-tree`, `rate` | 1,000 | 2,000 | 4,000 |
-| `answer` (provisional) | 2,000 | 4,000 | 8,000 |
-| `extract`, `entities`, `verify` (provisional) | 5,000 | 10,000 | 20,000 |
+| low | medium | high |
+| --- | --- | --- |
+| 1,000 | 2,000 | 4,000 |
 
-The generative rows are provisional and may change. Read `x-input-tokens` on every response for the number actually billed. Rate limits count those same tokens; an image request is one request.
+The same tiers apply to every capability, once per request. Read `x-input-tokens` on every response for the number actually billed. Rate limits count those same tokens; an image request is one request.
 
-### Boxes
+### Offsets on images
 
-The capabilities that read content back give the region they read it from, in the pixel coordinates of the image you uploaded, as `[x1, y1, x2, y2]` integers, or `null` when the model located nothing.
-
-- `answer`: `bbox` per question. `start` and `end` are `null` on images, since there is no text to offset into.
-- `entities`: `bbox` per item.
-- `extract`: `boxes`, an object keyed by the dotted field path (`total_due`, `items[2].price`). It can come back empty.
-
-Boxes are approximate. A box lands inside the true value about half the time, and a line-item box sits on the item name rather than the value. Use a box to point a reviewer at a region. Never drive a crop, a redaction or any automatic edit from one without a check.
+An image carries no character offsets. `answer` returns `start` and `end` as `null`, and `entities` returns `start`, `end` and `probability` as `null` on every item. Every other field keeps its text meaning.
 
 ### Privacy
 
