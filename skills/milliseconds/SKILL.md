@@ -104,7 +104,7 @@ dm1 classify "I was charged twice" billing shipping account
 dm1 yes-no "Ship it today" "The customer expresses urgency." --check
 ```
 
-`dm1 --image <path>` sends an image instead of a text, with `--detail low|medium|high`. Both SDKs take `image` and `detail` on every capability method. Python accepts a path, bytes or base64. TypeScript accepts a `Uint8Array`, an `ArrayBuffer`, a `Blob`, a data URL or bare base64; read a file with the Node-only helper `imageFile(path)`.
+`dm1 --image <path>` sends an image instead of a text, with `--detail low|medium|high`. Both SDKs take `image` and `detail` on every capability method. Python accepts a path, bytes or base64. TypeScript accepts a `Uint8Array`, an `ArrayBuffer`, a `Blob`, a data URL or bare base64; read a file with the Node-only helper `imageFile(path)` from `@cloudraker/milliseconds/node`, and pass it as the option: `dm.classify('', LABELS, { image: imageFile('receipt.jpg') })`.
 
 `--check` works with `yes-no` and `verify`. It exits 3 when the answer is no. `--min` gates on `probability`, and `--min-confidence` on `confidence`. `--json` and `--jsonl` print machine-readable output. `dm1 --help` lists every flag.
 
@@ -206,6 +206,8 @@ The capabilities that read content back give the region they read it from, in th
 - `answer`: `bbox` per question. `start` and `end` are `null` on images, since there is no text to offset into.
 - `entities`: `bbox` per item.
 - `extract`: `boxes`, an object keyed by the dotted field path (`total_due`, `items[2].price`). It can come back empty.
+
+Boxes are approximate. A box lands inside the true value about half the time, and a line-item box sits on the item name rather than the value. Use a box to point a reviewer at a region. Never drive a crop, a redaction or any automatic edit from one without a check.
 
 ### Privacy
 

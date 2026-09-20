@@ -120,12 +120,12 @@ Full page: https://docs.milliseconds.ai/capabilities/extract.md
 
 Send `image` (data URL or bare base64 of a JPEG, PNG or WebP, one per request, 5 MB decoded) in place of `text`, with optional `text` as context. `schema` keeps its meaning, descriptions included. `detail` picks the longest edge, `low` 512 px, `medium` 768 px (default), `high` 1024 px; raise it for small print.
 
-The response gains `boxes`: an object keyed by the dotted field path, each value `[x1, y1, x2, y2]` integers in the pixels of the image you uploaded. Fields the model did not locate are absent, and `boxes` can come back empty. `data` keeps its shape and its `null` for a missing value.
+The response gains `boxes`: an object keyed by the dotted field path, each value `[x1, y1, x2, y2]` integers in the pixels of the image you uploaded. Fields the model did not locate are absent, and `boxes` can come back empty. Boxes are approximate: roughly where the value is, often missing, and a line-item box sits on the item name rather than the price. Point a reviewer at a box; never crop or redact from one without a check. `data` keeps its shape and its `null` for a missing value.
 
 ```json
 {
   "data": {"invoice_number": "4471", "total_due": 2676, "items": [{"price": 12.5}]},
-  "boxes": {"invoice_number": [412, 96, 520, 124], "items[0].price": [640, 388, 702, 406]}
+  "boxes": {"invoice_number": [412, 96, 520, 124]}
 }
 ```
 
