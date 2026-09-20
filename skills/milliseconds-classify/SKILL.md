@@ -1,7 +1,7 @@
 ---
 name: milliseconds-classify
 description: |
-  Put a text into one label from a described set with decision-machine-1 (classify), or walk a nested label tree in one call (classify-tree). Returns the winner, its probability, a confidence number and the full score distribution. Use for intent routing, queue assignment, topic tagging, tool selection in front of an agent, taxonomy classification, and any mutually exclusive choice over text.
+  Put a text into one label from a described set with decision-machine-1 (classify), or walk a nested label tree in one call (classify-tree). Returns the winner, its probability, a confidence number and the full score distribution. Use for intent routing, queue assignment, topic tagging, tool selection in front of an agent, taxonomy classification, and any mutually exclusive choice over text. Also classifies one image (document scan or photo).
 ---
 
 # classify and classify-tree
@@ -152,3 +152,21 @@ dm1 classify --lines tickets.txt @labels.json --jsonl > labelled.ndjson
 - **Support triage** with a `rate` for priority and `yes-no` flags. Docs: /recipes/support-triage.md.
 
 Full pages: https://docs.milliseconds.ai/capabilities/classify.md, https://docs.milliseconds.ai/capabilities/classify-tree.md
+
+## Images
+
+Both `classify` and `classify-tree` read an image. Send `image` (data URL or bare base64 of a JPEG, PNG or WebP, one per request, 5 MB decoded) in place of `text`, with optional `text` as context. `labels`, `tree` and `question` keep their meaning: describe what the image shows. `detail` picks the longest edge, `low` 512 px, `medium` 768 px (default), `high` 1024 px; raise it for small print.
+
+```json
+{
+  "image": "data:image/jpeg;base64,...",
+  "detail": "high",
+  "labels": {
+    "invoice": "a bill listing amounts due",
+    "receipt": "proof of a completed payment",
+    "form": "a blank or filled template with labelled fields"
+  }
+}
+```
+
+`texts` with `image` is a 400 (`image_with_texts`). Billed tokens are the body without the base64, plus 196, plus 1,000 / 2,000 / 4,000 by tier. Measured: 100 % top-1 over ten photo classes, 61 % top-1 over sixteen scanned document types. Photos are easy, document types are not, so route document classification through `confidence`, not a bare argmax.

@@ -1,7 +1,7 @@
 ---
 name: milliseconds-yes-no
 description: |
-  Score a statement, or up to 32 statements, against a text with decision-machine-1 and get a boolean plus a probability per statement. Use for flags (urgent, off-topic, contains PII, answers the question), LLM input and output guardrails, RAG passage filtering, and any independent true-or-false judgment over text.
+  Score a statement, or up to 32 statements, against a text with decision-machine-1 and get a boolean plus a probability per statement. Use for flags (urgent, off-topic, contains PII, answers the question), LLM input and output guardrails, RAG passage filtering, and any independent true-or-false judgment over text. Also scores statements over one image (document scan or photo).
 ---
 
 # yes-no
@@ -111,3 +111,17 @@ The SDK takes one `statements` argument and picks the wire field for you. A stri
 - **Support flags**: urgency, refund request, personal data, next to a `classify` for the queue. Docs: /recipes/support-triage.md.
 
 Full page: https://docs.milliseconds.ai/capabilities/yes-no.md
+
+## Images
+
+Send `image` (data URL or bare base64 of a JPEG, PNG or WebP, one per request, 5 MB decoded) in place of `text`, with optional `text` as context. `statement`, `statements`, `when_true` and `when_false` keep their meaning: write the claim about what the image shows. `detail` picks the longest edge the model reads, `low` 512 px, `medium` 768 px (default), `high` 1024 px.
+
+```json
+{
+  "image": "data:image/jpeg;base64,...",
+  "detail": "medium",
+  "statements": ["The document is a signed contract.", "The page carries a handwritten signature."]
+}
+```
+
+`texts` with `image` is a 400 (`image_with_texts`); batch images one request each. Billed tokens are the body without the base64, plus 196, plus 1,000 / 2,000 / 4,000 by tier. Document-type judgments on scans scored F1 0.82 at the 0.5 cut and 0.88 at the best threshold, so tune the cut-off on your own images.

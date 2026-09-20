@@ -1,7 +1,7 @@
 ---
 name: milliseconds-extract
 description: |
-  Fill a JSON Schema from a text with decision-machine-1 and get a typed object back, with null for every field the text does not carry. Use for invoices, orders, résumés, confirmations, form-like emails: several fields from one document in one 0.4 s call, values coerced to your types. Pair with verify before writing money or identity fields.
+  Fill a JSON Schema from a text with decision-machine-1 and get a typed object back, with null for every field the text does not carry. Use for invoices, orders, résumés, confirmations, form-like emails: several fields from one document in one 0.4 s call, values coerced to your types. Pair with verify before writing money or identity fields. Also extracts from one image (receipt, invoice or form scan), with a bounding box per field.
 ---
 
 # extract
@@ -115,3 +115,18 @@ The TypeScript SDK reads the JSON Schema literal at the type level, so the resul
 - Already using an OpenAI client? `response_format.json_schema` on `/v1/chat/completions` maps to this capability but returns a JSON string and no `texts` batching. See milliseconds-openai.
 
 Full page: https://docs.milliseconds.ai/capabilities/extract.md
+
+## Images
+
+Send `image` (data URL or bare base64 of a JPEG, PNG or WebP, one per request, 5 MB decoded) in place of `text`, with optional `text` as context. `schema` keeps its meaning, descriptions included. `detail` picks the longest edge, `low` 512 px, `medium` 768 px (default), `high` 1024 px; raise it for small print.
+
+The response gains `boxes`: an object keyed by the dotted field path, each value `[x1, y1, x2, y2]` integers in the pixels of the image you uploaded. Fields the model did not locate are absent, and `boxes` can come back empty. `data` keeps its shape and its `null` for a missing value.
+
+```json
+{
+  "data": {"invoice_number": "4471", "total_due": 2676, "items": [{"price": 12.5}]},
+  "boxes": {"invoice_number": [412, 96, 520, 124], "items[0].price": [640, 388, 702, 406]}
+}
+```
+
+`texts` with `image` is a 400 (`image_with_texts`); one image per request. Billing is provisional on images: the body without the base64, plus 196, plus 5,000 / 10,000 / 20,000 by tier. Read `x-input-tokens`. Measured on receipts: 74 % on flat fields, 0.82 F1 on line items. Do not pre-parse a document to text and extract from that; the pixels carry layout that markdown drops, and the text route lost 20 F1 points on line items.

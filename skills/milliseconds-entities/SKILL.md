@@ -1,7 +1,7 @@
 ---
 name: milliseconds-entities
 description: |
-  Find every span of the types you name in a text with decision-machine-1, each with a probability and character offsets, sorted by position. You define the types (person, email, case_number, drug_name...); there is no fixed taxonomy. Use for PII detection and redaction, highlighting, counting mentions, and any "all occurrences" need.
+  Find every span of the types you name in a text with decision-machine-1, each with a probability and character offsets, sorted by position. You define the types (person, email, case_number, drug_name...); there is no fixed taxonomy. Use for PII detection and redaction, highlighting, counting mentions, and any "all occurrences" need. Also finds entities in one image, with a bounding box per mention.
 ---
 
 # entities
@@ -101,3 +101,15 @@ The call returns a plain array of entities, not an envelope. Your type names bec
 - Typical latency 0.42 s for 3 types on a short text.
 
 Full page: https://docs.milliseconds.ai/capabilities/entities.md
+
+## Images
+
+Send `image` (data URL or bare base64 of a JPEG, PNG or WebP, one per request, 5 MB decoded) in place of `text`, with optional `text` as context. `types` keeps its meaning, descriptions included. `detail` picks the longest edge, `low` 512 px, `medium` 768 px (default), `high` 1024 px.
+
+Each item carries `bbox`, the region it was read from, as `[x1, y1, x2, y2]` integers in the pixels of the image you uploaded, or `null` when the model located nothing. Character offsets do not apply, so a redaction loop over an image masks the boxes, not spans.
+
+```json
+{"entities":{"person":[{"text":"Dana Whitfield","bbox":[88,212,244,236]}]}}
+```
+
+`texts` with `image` is a 400 (`image_with_texts`). Billing is provisional on images: the body without the base64, plus 196, plus 5,000 / 10,000 / 20,000 by tier. Read `x-input-tokens`.

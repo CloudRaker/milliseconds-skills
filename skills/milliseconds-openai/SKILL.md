@@ -1,7 +1,7 @@
 ---
 name: milliseconds-openai
 description: |
-  Point an existing OpenAI client at decision-machine-1 (base_url https://api.milliseconds.ai/v1, model decision-machine-1) for structured extraction via response_format.json_schema and function calling via tools. Use when the project already has an OpenAI SDK and wants typed decisions without a new client, and to know when to switch to the native endpoints.
+  Point an existing OpenAI client at decision-machine-1 (base_url https://api.milliseconds.ai/v1, model decision-machine-1) for structured extraction via response_format.json_schema and function calling via tools. Use when the project already has an OpenAI SDK and wants typed decisions without a new client, and to know when to switch to the native endpoints. Also accepts a data-URL image content part.
 ---
 
 # OpenAI-compatible surface
@@ -70,3 +70,7 @@ The facade reaches two of eight capabilities and returns no numbers to route on.
 Switch as soon as you need a probability, a confidence, an offset, a batch, or confidence routing. Docs: /openai/when-to-use-native.md.
 
 Full pages: https://docs.milliseconds.ai/openai/overview.md, /openai/structured-extraction.md, /openai/function-calling.md
+
+## Images
+
+The facade accepts an `image_url` content part whose `url` is a data URL (`data:image/jpeg;base64,...`, also `png` and `webp`), under the same rules as the native `image` field: one image, 5 MB decoded, bytes only. An `http(s)` URL is a 400; the facade never fetches. Billed tokens follow the native rule, the base64 excluded and a fixed number added per image. Use the native endpoints when you need `detail` or the boxes.

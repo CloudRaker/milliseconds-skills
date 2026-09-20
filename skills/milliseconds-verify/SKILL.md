@@ -1,7 +1,7 @@
 ---
 name: milliseconds-verify
 description: |
-  Check a value you already hold against a text with decision-machine-1: does the document support this invoice number, this total, this customer name? Returns matches, a probability, and found[], the raw spans the model read. Use as the check step after extract, OCR, a form submission or a CRM sync, before a value moves money or lands in a record.
+  Check a value you already hold against a text with decision-machine-1: does the document support this invoice number, this total, this customer name? Returns matches, a probability, and found[], the raw spans the model read. Use as the check step after extract, OCR, a form submission or a CRM sync, before a value moves money or lands in a record. Also verifies a value against one image.
 ---
 
 # verify
@@ -100,3 +100,13 @@ dm1 verify "INVOICE #4471 - Acme Corp. Total due \$2,676.00." \
 Docs: /patterns/extract-then-verify.md, /recipes/invoice-extraction.md.
 
 Full page: https://docs.milliseconds.ai/capabilities/verify.md
+
+## Images
+
+Send `image` (data URL or bare base64 of a JPEG, PNG or WebP, one per request, 5 MB decoded) in place of `text`, with optional `text` as context. `field` and `value` keep their meaning: the field describes what to look for in the image, the value is what you already hold. `detail` picks the longest edge, `low` 512 px, `medium` 768 px (default), `high` 1024 px; raise it for small print.
+
+```json
+{"image": "data:image/jpeg;base64,...", "field": "the total amount due", "value": "2676.00"}
+```
+
+The result keeps its shape: `matches`, `probability`, `found[]`. `texts` with `image` is a 400 (`image_with_texts`). Billing is provisional on images: the body without the base64, plus 196, plus 5,000 / 10,000 / 20,000 by tier. Read `x-input-tokens`. The extract-then-verify loop works the same way on a scan: extract the fields, then verify the money and identity ones against the same image.

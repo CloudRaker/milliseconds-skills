@@ -1,7 +1,7 @@
 ---
 name: milliseconds
 description: |
-  Build software on decision-machine-1, the milliseconds.ai decisions API. It turns text into typed decisions in about 0.4 s: a boolean with a probability, one label with a score distribution, a position on a scale, a span with offsets, a filled JSON Schema, every entity of a type, or a check of a value against the text. Never prose. Use when a feature needs a small judgment over text (route, flag, rank, extract, verify, guard an LLM), when a prompt-and-parse step could become a typed decision, or when brainstorming where cheap semantic decisions replace fragile parsing. Also use for any API question about api.milliseconds.ai.
+  Build software on decision-machine-1, the milliseconds.ai decisions API. It turns text, or one image, into typed decisions in about 0.4 s: a boolean with a probability, one label with a score distribution, a position on a scale, a span with offsets, a filled JSON Schema, every entity of a type, or a check of a value against the text. Never prose. Use when a feature needs a small judgment over text (route, flag, rank, extract, verify, guard an LLM), when a prompt-and-parse step could become a typed decision, or when brainstorming where cheap semantic decisions replace fragile parsing, including over document scans and photos. Also use for any API question about api.milliseconds.ai.
 ---
 
 # Build with decision-machine-1
@@ -104,6 +104,8 @@ dm1 classify "I was charged twice" billing shipping account
 dm1 yes-no "Ship it today" "The customer expresses urgency." --check
 ```
 
+`dm1 --image <path>` sends an image instead of a text, with `--detail low|medium|high`. Both SDKs take `image` (a path, bytes or base64) and `detail` on every capability method.
+
 `--check` works with `yes-no` and `verify`. It exits 3 when the answer is no. `--min` gates on `probability`, and `--min-confidence` on `confidence`. `--json` and `--jsonl` print machine-readable output. `dm1 --help` lists every flag.
 
 ## Choose the capability from the answer shape
@@ -168,6 +170,51 @@ Route into three bands per action: **act** above a high bar, **confirm** in the 
 
 `text` takes up to 20,000 characters. Above 2,000 the API chunks on whitespace. Classifier scores take the max over chunks, so a late claim still scores high, but a short decisive sentence inside long off-topic prose gets diluted. Split on the structure you have (paragraphs, messages, rows) and send parts as `texts` when you need per-part verdicts. Send the whole document for `entities` and for a document-level verdict. Cut signatures and quoted history first.
 
+## Images
+
+Every capability also reads one image. Send `image` instead of `text`, or with `text` as extra context.
+
+- `image`: a data URL `data:image/jpeg;base64,...` (`png` and `webp` too) or bare base64 of a JPEG, PNG or WebP. Bytes only. The API never fetches a URL, and an `http(s)` value is a 400.
+- One image per request. `texts` together with `image` is a 400 (`image_with_texts`). Send exactly one of `text`, `texts` or `image`.
+- 5 MB decoded. Over that is a 400 `image_too_large`; an undecodable image is a 400 `invalid_image`. Both are rejected before the model runs.
+- `detail` sets the longest edge the model reads: `low` 512 px, `medium` 768 px (the default), `high` 1024 px. Higher reads small print better and costs more.
+- The rest of the body keeps its text meaning: `statement(s)`, `labels`, `tree`, `scale`, `question(s)`, `schema`, `types`, `field` and `value` describe the image instead of a text.
+
+```bash
+curl -s https://api.milliseconds.ai/v1/decision-machine-1/classify \
+  -H 'content-type: application/json' -H "authorization: Bearer $MS_API_KEY" \
+  -d "{\"image\":\"$(base64 -i scan.jpg)\",\"detail\":\"medium\",\"labels\":{
+        \"invoice\":\"a bill with amounts due\",
+        \"receipt\":\"proof of a completed payment\",
+        \"letter\":\"correspondence in prose\"}}"
+```
+
+The base64 never enters the character count. Billed input tokens are the tokens of the body without the image, plus 196, plus a fixed number per image:
+
+| Capability | low | medium | high |
+| --- | --- | --- | --- |
+| `yes-no`, `classify`, `classify-tree`, `rate` | 1,000 | 2,000 | 4,000 |
+| `answer` (provisional) | 2,000 | 4,000 | 8,000 |
+| `extract`, `entities`, `verify` (provisional) | 5,000 | 10,000 | 20,000 |
+
+The generative rows are provisional and may change. Read `x-input-tokens` on every response for the number actually billed. Rate limits count those same tokens; an image request is one request.
+
+### Boxes
+
+The capabilities that read content back give the region they read it from, in the pixel coordinates of the image you uploaded, as `[x1, y1, x2, y2]` integers, or `null` when the model located nothing.
+
+- `answer`: `bbox` per question. `start` and `end` are `null` on images, since there is no text to offset into.
+- `entities`: `bbox` per item.
+- `extract`: `boxes`, an object keyed by the dotted field path (`total_due`, `items[2].price`). It can come back empty.
+
+### Privacy
+
+Images are processed in memory on the GPU machine. They are never written to disk and never logged; the runner logs the task key and the top probability only. Same zero-retention terms as text.
+
+### Accuracy, measured
+
+Photo classification over ten dish classes scored 100 % top-1. Document-type classification over sixteen scanned types scored 61 % top-1, so route documents through a confidence band, not a bare argmax. Short answers over document images scored 0.90 ANLS; receipt extraction scored 74 % on flat fields and 0.82 F1 on line items. Build a golden set of your own images before you set a threshold.
+
 ## Errors and retries
 
 One envelope: `{"error":{"code":"...","message":"..."}}`.
@@ -175,6 +222,7 @@ One envelope: `{"error":{"code":"...","message":"..."}}`.
 | Status | Code | Action |
 | --- | --- | --- |
 | 400 | `invalid_request`, `invalid_schema`, `unsupported_request` | Fix the body. `body: provide text or texts, not both` also fires when you send neither. |
+| 400 | `invalid_image`, `image_too_large`, `image_with_texts` | Fix the image: bytes of a JPEG/PNG/WebP, under 5 MB decoded, not alongside `texts`. |
 | 401 | `missing_api_key`, `invalid_api_key` | Fix the key. |
 | 429 | `rate_limit_exceeded` | Wait `retry-after` seconds, then retry. |
 | 429 | `insufficient_quota` | No credits. Do not retry on a timer. |

@@ -1,7 +1,7 @@
 ---
 name: milliseconds-answer
 description: |
-  Ask a question of a text with decision-machine-1 and get back the span that answers it, with character offsets and a probability, or null when nothing fits. Use when you need one stated value plus where it came from: citations, highlighting, linking back to the source, or a few questions over the same text in one call.
+  Ask a question of a text with decision-machine-1 and get back the span that answers it, with character offsets and a probability, or null when nothing fits. Use when you need one stated value plus where it came from: citations, highlighting, linking back to the source, or a few questions over the same text in one call. Also answers questions over one image, returning a bounding box instead of offsets.
 ---
 
 # answer
@@ -87,3 +87,23 @@ curl -s https://example.com/order.txt | dm1 answer - "Who is the customer?" --js
 - The extractor is multilingual: the span comes back in the source language, offsets stay correct across accented characters. Write the question in English. It copies `3 avril` or `3.480,00 EUR` verbatim and never converts formats. Normalise in code.
 
 Full page: https://docs.milliseconds.ai/capabilities/answer.md
+
+## Images
+
+Send `image` (data URL or bare base64 of a JPEG, PNG or WebP, one per request, 5 MB decoded) in place of `text`, with optional `text` as context. `question` and `questions` keep their meaning. `detail` picks the longest edge, `low` 512 px, `medium` 768 px (default), `high` 1024 px; raise it for small print.
+
+```json
+{
+  "image": "data:image/jpeg;base64,...",
+  "detail": "high",
+  "questions": ["the invoice number", "the date the payment is due"]
+}
+```
+
+The result shape changes on images: `start` and `end` are `null`, because there is no text to offset into, and `bbox` carries the region the answer was read from as `[x1, y1, x2, y2]` integers in the pixels of the image you uploaded, or `null` when the model located nothing.
+
+```json
+{"question":"the invoice number","answer":"4471","probability":0.92,"start":null,"end":null,"bbox":[412,96,520,124]}
+```
+
+`texts` with `image` is a 400 (`image_with_texts`). Billing is provisional on images: the body without the base64, plus 196, plus 2,000 / 4,000 / 8,000 by tier. Read `x-input-tokens`. Measured on document images: 0.90 ANLS on short answers.

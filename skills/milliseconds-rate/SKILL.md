@@ -1,7 +1,7 @@
 ---
 name: milliseconds-rate
 description: |
-  Place a text on an ordered scale with decision-machine-1 and get a probability-weighted score, the winning level, and a confidence. Use for severity, priority, sentiment strength, harm, risk, urgency as a degree, and for composite scoring where several atomic ratings are weighted in code.
+  Place a text on an ordered scale with decision-machine-1 and get a probability-weighted score, the winning level, and a confidence. Use for severity, priority, sentiment strength, harm, risk, urgency as a degree, and for composite scoring where several atomic ratings are weighted in code. Also rates one image (document scan or photo).
 ---
 
 # rate
@@ -105,3 +105,17 @@ The `as const` scale gives a level literal union and a fixed-length `scores` tup
 - **Support priority** next to a `classify` queue and `yes-no` flags. Docs: /recipes/support-triage.md.
 
 Full page: https://docs.milliseconds.ai/capabilities/rate.md
+
+## Images
+
+Send `image` (data URL or bare base64 of a JPEG, PNG or WebP, one per request, 5 MB decoded) in place of `text`, with optional `text` as context. `scale` and `question` keep their meaning: order the level descriptions low to high, about what the image shows. `detail` picks the longest edge, `low` 512 px, `medium` 768 px (default), `high` 1024 px.
+
+```json
+{
+  "image": "data:image/jpeg;base64,...",
+  "question": "how legible this scan is",
+  "scale": ["unreadable, the text is lost", "readable with effort", "clean and sharp"]
+}
+```
+
+`texts` with `image` is a 400 (`image_with_texts`). Billed tokens are the body without the base64, plus 196, plus 1,000 / 2,000 / 4,000 by tier. No accuracy ground truth exists for rate on images yet; measure on a golden set before you route on `score`.
