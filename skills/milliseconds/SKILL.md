@@ -104,7 +104,7 @@ dm1 classify "I was charged twice" billing shipping account
 dm1 yes-no "Ship it today" "The customer expresses urgency." --check
 ```
 
-`dm1 --image <path>` sends an image instead of a text, with `--detail low|medium|high`. Both SDKs take `image` (a path, bytes or base64) and `detail` on every capability method.
+`dm1 --image <path>` sends an image instead of a text, with `--detail low|medium|high`. Both SDKs take `image` and `detail` on every capability method. Python accepts a path, bytes or base64. TypeScript accepts a `Uint8Array`, an `ArrayBuffer`, a `Blob`, a data URL or bare base64; read a file with the Node-only helper `imageFile(path)`.
 
 `--check` works with `yes-no` and `verify`. It exits 3 when the answer is no. `--min` gates on `probability`, and `--min-confidence` on `confidence`. `--json` and `--jsonl` print machine-readable output. `dm1 --help` lists every flag.
 
@@ -175,7 +175,7 @@ Route into three bands per action: **act** above a high bar, **confirm** in the 
 Every capability also reads one image. Send `image` instead of `text`, or with `text` as extra context.
 
 - `image`: a data URL `data:image/jpeg;base64,...` (`png` and `webp` too) or bare base64 of a JPEG, PNG or WebP. Bytes only. The API never fetches a URL, and an `http(s)` value is a 400.
-- One image per request. `texts` together with `image` is a 400 (`image_with_texts`). Send exactly one of `text`, `texts` or `image`.
+- One image per request. Send `image` alone, or together with `text` as context. `texts` together with `image` is a 400 (`image_with_texts`).
 - 5 MB decoded. Over that is a 400 `image_too_large`; an undecodable image is a 400 `invalid_image`. Both are rejected before the model runs.
 - `detail` sets the longest edge the model reads: `low` 512 px, `medium` 768 px (the default), `high` 1024 px. Higher reads small print better and costs more.
 - The rest of the body keeps its text meaning: `statement(s)`, `labels`, `tree`, `scale`, `question(s)`, `schema`, `types`, `field` and `value` describe the image instead of a text.
@@ -183,7 +183,7 @@ Every capability also reads one image. Send `image` instead of `text`, or with `
 ```bash
 curl -s https://api.milliseconds.ai/v1/decision-machine-1/classify \
   -H 'content-type: application/json' -H "authorization: Bearer $MS_API_KEY" \
-  -d "{\"image\":\"$(base64 -i scan.jpg)\",\"detail\":\"medium\",\"labels\":{
+  -d "{\"image\":\"$(base64 scan.jpg | tr -d '\n')\",\"detail\":\"medium\",\"labels\":{
         \"invoice\":\"a bill with amounts due\",
         \"receipt\":\"proof of a completed payment\",
         \"letter\":\"correspondence in prose\"}}"
