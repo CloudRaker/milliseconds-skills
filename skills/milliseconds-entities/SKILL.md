@@ -114,4 +114,4 @@ The result keeps its shape, the same flat array of items. Character offsets do n
 ]}
 ```
 
-`texts` with `image` is a 400 (`image_with_texts`). Billing is provisional on images: the body without the base64, plus 196, plus 5,000 / 10,000 / 20,000 by tier. Read `x-input-tokens`.
+`texts` with `image` is a 400 (`image_with_texts`). Billing on images: the body without the base64, plus 196, plus 2,000 / 4,000 / 8,000 by tier. Read `x-input-tokens`.

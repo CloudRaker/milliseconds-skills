@@ -193,11 +193,11 @@ The base64 never enters the character count. Billed input tokens are the tokens 
 
 | capability | low | medium | high |
 | --- | --- | --- | --- |
-| `yes-no`, `classify`, `classify-tree`, `rate` | 1,000 | 2,000 | 4,000 |
-| `answer` (provisional) | 2,000 | 4,000 | 8,000 |
-| `extract`, `entities`, `verify` (provisional) | 5,000 | 10,000 | 20,000 |
+| `yes-no`, `classify`, `classify-tree`, `rate` (x1) | 1,000 | 2,000 | 4,000 |
+| `answer` (x1.5) | 1,500 | 3,000 | 6,000 |
+| `extract`, `entities`, `verify` (x2) | 2,000 | 4,000 | 8,000 |
 
-The generative rows are provisional and may change. The image bills once per request. Read `x-input-tokens` on every response for the number actually billed. Rate limits count those same tokens; an image request is one request.
+These prices are final. The OpenAI facade bills every image at the `extract` rate, x2. `extract` with an `image` accepts at most 5 fields in the schema; a larger schema is a 400 (`image_schema_too_large`). The image bills once per request. Read `x-input-tokens` on every response for the number actually billed. Rate limits count those same tokens; an image request is one request.
 
 ### Offsets on images
 
@@ -219,6 +219,7 @@ One envelope: `{"error":{"code":"...","message":"..."}}`.
 | --- | --- | --- |
 | 400 | `invalid_request`, `invalid_schema`, `unsupported_request` | Fix the body. `body: provide text or texts, not both` also fires when you send neither. |
 | 400 | `invalid_image`, `image_too_large`, `image_with_texts` | Fix the image: bytes of a JPEG/PNG/WebP, under 5 MB decoded, not alongside `texts`. |
+| 400 | `image_schema_too_large` | An `extract` schema on an image holds more than 5 fields. Split the schema, or extract from parsed text. |
 | 401 | `missing_api_key`, `invalid_api_key` | Fix the key. |
 | 429 | `rate_limit_exceeded` | Wait `retry-after` seconds, then retry. |
 | 429 | `insufficient_quota` | No credits. Do not retry on a timer. |

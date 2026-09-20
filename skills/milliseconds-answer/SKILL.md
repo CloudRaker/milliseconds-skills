@@ -106,4 +106,4 @@ The result shape changes on images: `start` and `end` are `null`, because there 
 {"question":"the invoice number","answer":"4471","probability":0.92,"start":null,"end":null}
 ```
 
-`texts` with `image` is a 400 (`image_with_texts`). Billing is provisional on images: the body without the base64, plus 196, plus 2,000 / 4,000 / 8,000 by tier. Read `x-input-tokens`. Measured on document images: 0.90 ANLS on short answers.
+`texts` with `image` is a 400 (`image_with_texts`). Billing on images: the body without the base64, plus 196, plus 1,500 / 3,000 / 6,000 by tier. Read `x-input-tokens`. Measured on document images: 0.90 ANLS on short answers.
